@@ -41,9 +41,15 @@ const (
 
 type Message struct {
 	Role       LLMRole            `json:"role" validate:"required"` // Required
-	Content    string             `json:"content,omitempty"`        // Optional
+	Content    any                `json:"content,omitempty"`        // Optional, supports string or multimodal blocks
 	ToolCallID string             `json:"tool_call_id,omitempty"`   // Optional
 	ToolCalls  []structs.ToolCall `json:"tool_calls,omitempty"`     // Optional, uses structs.ToolCall
+}
+
+type MessageContentBlock struct {
+	Type   string `json:"type" validate:"required"`
+	Text   string `json:"text,omitempty"`
+	Base64 string `json:"base64,omitempty"`
 }
 
 type GPTGenerationConfig struct {
