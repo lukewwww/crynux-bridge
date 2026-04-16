@@ -421,7 +421,7 @@ func CheckQuotaForTaskCreator(ctx context.Context) error {
 
 	address := appConfig.Blockchain.Account.Address
 
-	reqUrl := appConfig.Relay.BaseURL + fmt.Sprintf("/v1/task_quota/%s", address)
+	reqUrl := appConfig.Relay.BaseURL + fmt.Sprintf("/v1/balance/%s", address)
 
 	timeoutCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
@@ -432,7 +432,7 @@ func CheckQuotaForTaskCreator(ctx context.Context) error {
 	}
 	defer resp.Body.Close()
 	if err := processRelayResponse(resp); err != nil {
-		log.Errorf("Relay: CheckQuotaForTaskCreator error: %v", err)
+		log.Errorf("Relay: CheckQuotaForTaskCreator failed to fetch relay account balance: %v", err)
 		return err
 	}
 
@@ -440,9 +440,9 @@ func CheckQuotaForTaskCreator(ctx context.Context) error {
 	quotaStr := new(string)
 	err = parseRelayResponseData(resp, quotaStr)
 	if err != nil {
-		log.Errorf("Relay: CheckQuotaForTaskCreator error: %v", err)
+		log.Errorf("Relay: CheckQuotaForTaskCreator failed to parse relay account balance: %v", err)
 	}
-	log.Debugf("Relay: CheckQuotaForTaskCreator, balance: %s", *quotaStr)
+	log.Debugf("Relay: CheckQuotaForTaskCreator relay account balance: %s", *quotaStr)
 
 	quota, ok := big.NewInt(0).SetString(*quotaStr, 10)
 	if !ok {
