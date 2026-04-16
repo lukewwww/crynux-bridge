@@ -415,7 +415,7 @@ func CancelTask(ctx context.Context, task *models.InferenceTask, abortReason mod
 	return nil
 }
 
-func CheckQuotaForTaskCreator(ctx context.Context) error {
+func CheckBalanceForTaskCreator(ctx context.Context) error {
 
 	appConfig := config.GetConfig()
 
@@ -432,26 +432,26 @@ func CheckQuotaForTaskCreator(ctx context.Context) error {
 	}
 	defer resp.Body.Close()
 	if err := processRelayResponse(resp); err != nil {
-		log.Errorf("Relay: CheckQuotaForTaskCreator failed to fetch relay account balance: %v", err)
+		log.Errorf("Relay: CheckBalanceForTaskCreator failed to fetch relay account balance: %v", err)
 		return err
 	}
 
 	// get and check balance
-	quotaStr := new(string)
-	err = parseRelayResponseData(resp, quotaStr)
+	balanceStr := new(string)
+	err = parseRelayResponseData(resp, balanceStr)
 	if err != nil {
-		log.Errorf("Relay: CheckQuotaForTaskCreator failed to parse relay account balance: %v", err)
+		log.Errorf("Relay: CheckBalanceForTaskCreator failed to parse relay account balance: %v", err)
 	}
-	log.Debugf("Relay: CheckQuotaForTaskCreator relay account balance: %s", *quotaStr)
+	log.Debugf("Relay: CheckBalanceForTaskCreator relay account balance: %s", *balanceStr)
 
-	quota, ok := big.NewInt(0).SetString(*quotaStr, 10)
+	balance, ok := big.NewInt(0).SetString(*balanceStr, 10)
 	if !ok {
-		return errors.New("failed to convert quota string to big.Int")
+		return errors.New("failed to convert balance string to big.Int")
 	}
 
 	ethThreshold := utils.EtherToWei(big.NewInt(500))
-	if quota.Cmp(ethThreshold) != 1 {
-		return errors.New("not enough quota left")
+	if balance.Cmp(ethThreshold) != 1 {
+		return errors.New("not enough relay account balance")
 	}
 
 	return nil
